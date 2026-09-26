@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "benchq-dev",
+      "runtimeExecutable": "/Users/abdulkabeer/.npm-global/bin/pnpm",
+      "runtimeArgs": ["dev"],
+      "port": 3000,
+      "autoPort": true
+    }
+  ]
+}

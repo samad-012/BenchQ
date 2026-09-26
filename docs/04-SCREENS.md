@@ -1,0 +1,562 @@
+# 04 — Screens
+
+**Project:** BenchQ · frontend only
+**Version:** 1.0 · September 2026
+
+Every route, its layout, its states, its permissions and its keyboard map. If a screen isn't in
+here, it doesn't get built — propose it first.
+
+---
+
+## 0. Rules that apply to every screen
+
+**Three states, always.** Skeleton while loading, empty when there's nothing, error when the
+adapter throws. Set `NEXT_PUBLIC_MOCK_ERROR_RATE=0.1` and walk the app — every error state you hit
+must already exist.
+
+**Light first.** Light is the default render; dark is a preference the user opts into. Both are
+first-class and both ship complete — but design and review in light, and treat dark as the theme
+that must also be correct, not the one that leads. Given the 6:30 PM – 12:30 AM IST shift, expect
+dark to get heavy real-world use, so it never becomes an afterthought.
+
+**Density.** This is a production console, not a marketing site. Per design.md v3, default row height
+is 36px, compact 32px, comfortable 44px. The setting persists per user in `localStorage`.
+
+**Timezones.** Any timestamp that matters to a US-facing action renders as a `DualTimestamp` —
+client-local time primary, IST secondary. Never show a bare UTC string.
+
+**Permission rendering.** A control the current role cannot use is **not rendered at all**. Do not
+render a disabled button as a hint that a feature exists. The one exception is the export gate,
+where the disabled state *is* the message.
+
+**Counts are derived.** Every number on every screen comes from `src/lib/derive/`. A fixture never
+supplies a count.
+
+---
+
+## 1. Global chrome
+
+### 1.1 AppShell
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Topbar  [logo] [firm switcher]      [⌘K search]    [shift clock] [role] [me] │
+├────────────┬─────────────────────────────────────────────────────────────────┤
+│  Sidebar   │                                                                 │
+│  Dashboard │                     route content                               │
+│  Candidates│                                                                 │
+│  Jobs      │                                                                 │
+│  Apps      │                                                                 │
+│  Outreach  │                                                                 │
+│  Follow-ups│                                                                 │
+│  Analytics │                                                                 │
+│  Ledger    │                                                                 │
+│  ───────   │                                                                 │
+│  Settings  │                                                                 │
+└────────────┴─────────────────────────────────────────────────────────────────┘
+```
+
+Sidebar: 208px expanded, 60px collapsed, 48px mobile icon rail, state in `localStorage`. Items carry live badge counts
+(follow-ups due today, unreviewed unverified claims). Badges are derived, and a badge of zero is
+hidden, not rendered as "0".
+
+**Shift clock** in the topbar is not decoration. It shows current US Eastern time alongside IST and
+how much of the 6:30 PM – 12:30 AM IST window remains. At 11:45 PM IST it turns amber. The BDE is
+working against a clock; the product should acknowledge it.
+
+Sidebar visibility by role:
+
+| Item | OWNER | MANAGER | BDE | VIEWER |
+|---|---|---|---|---|
+| Dashboard | ✓ | ✓ | ✓ | ✓ |
+| Candidates | all | all | assigned only | all, read-only |
+| Jobs | ✓ | ✓ | ✓ | ✓ |
+| Applications | all | all | own only | all, read-only |
+| Outreach | ✓ | ✓ | own only | ✓ read-only |
+| Follow-ups | ✓ | ✓ | own only | — |
+| Analytics | ✓ | ✓ | — | ✓ read-only |
+| Ledger | ✓ | ✓ | own actions | ✓ read-only |
+| Settings → Firm | ✓ | — | — | — |
+| Settings → Team | ✓ | ✓ | — | — |
+| Settings → Templates | ✓ | ✓ | — | — |
+| Settings → Preferences | ✓ | ✓ | ✓ | ✓ |
+
+### 1.2 Command palette (`⌘K` / `Ctrl+K`)
+
+One input, grouped results, arrow keys to move, `Enter` to run, `Esc` to close. Groups in order:
+
+1. **Actions** — New candidate, Capture job, New application, Start outreach
+2. **Candidates** — fuzzy over name, title, skills
+3. **Jobs** — fuzzy over title, company
+4. **Navigation** — every route
+
+Recent items show when the input is empty. The palette is the fastest path to everything and it
+gets built in Phase 1, not as a nice-to-have at the end.
+
+### 1.3 Global keyboard map
+
+| Key | Action | Scope |
+|---|---|---|
+| `⌘K` | Command palette | Global |
+| `g` then `d` | Go to dashboard | Global |
+| `g` then `c` | Go to candidates | Global |
+| `g` then `j` | Go to jobs | Global |
+| `g` then `a` | Go to applications | Global |
+| `g` then `f` | Go to follow-ups | Global |
+| `J` / `↓` | Next row | Any list |
+| `K` / `↑` | Previous row | Any list |
+| `Enter` | Open focused row | Any list |
+| `Space` | Toggle row selection | Any list |
+| `x` | Select / deselect row | Any list |
+| `/` | Focus the list's filter input | Any list |
+| `T` | Tailor resume for focused job | Job feed, job detail |
+| `A` | Mark applied | Job detail, application detail |
+| `O` | Open outreach composer | Job detail, application detail |
+| `N` | New (context-dependent) | Any list |
+| `Esc` | Close panel / clear selection / go back | Global |
+| `?` | Keyboard shortcut sheet | Global |
+
+`?` opens a modal listing every shortcut available in the current context. Build it in Phase 1 and
+keep it accurate — it's the cheapest documentation in the product.
+
+---
+
+## 2. Auth and onboarding
+
+### 2.1 `/sign-in`, `/sign-up`, `/invite/[token]`
+
+`AuthShell`: centred card, product mark, no sidebar. There is no real auth in this repo — the form
+validates with Zod, shows the error state on a deliberately wrong password (`wrong@benchq.io`), and
+on success writes a session into the Zustand store and routes to `/dashboard`.
+
+Build the states properly anyway: field-level validation, a submit-pending state, a form-level
+error banner, and a "check your email" confirmation on sign-up. These are cheap now and expensive
+to retrofit.
+
+`/invite/[token]` shows the inviting firm's name and the role being offered before the accept
+button. An expired token renders its own state with a "request a new invite" action.
+
+### 2.2 `/welcome` — onboarding wizard
+
+Four steps, progress rail on the left, back/next, resumable (step index in `localStorage`).
+
+1. **Firm** — name, timezone, shift window (defaults to 18:30–00:30 IST)
+2. **Invite team** — email rows with role selects; skippable
+3. **First candidate** — name, title, work authorisation, resume upload (drop zone simulates a
+   parse with a 3s progress state, then shows extracted fields as `UNVERIFIED` claims for review)
+4. **Done** — three suggested next actions, routes to dashboard
+
+The resume-parse simulation in step 3 is the first time the user meets the unverified/verified model. Make
+it legible: the extracted fields arrive visibly drafted, and confirming one flips it to verified with
+the transition described in `design.md`.
+
+---
+
+## 3. `/dashboard`
+
+Role-dependent. Same route, three compositions.
+
+### 3.1 BDE view — "tonight"
+
+The BDE's dashboard answers one question: *what do I do next?*
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Tonight · 4h 12m left in shift          [Start a run ▸]     │
+├──────────────┬──────────────┬──────────────┬────────────────┤
+│ Applications │ Follow-ups   │ Responses    │ Unverified claims  │
+│ 23 / 40      │ 7 due        │ 3 new        │ 5 to review    │
+│ ████████░░   │              │              │                │
+├──────────────┴──────────────┴──────────────┴────────────────┤
+│ My candidates (6)                                            │
+│ ┌──────────────────────────────────────────────────────────┐ │
+│ │ Adnan Khan · Sr. Java Dev · H1B   12 apps  2 int  ●●●○○  │ │
+│ │ Priya Raman · Data Eng · GC        8 apps  1 int  ●●○○○  │ │
+│ └──────────────────────────────────────────────────────────┘ │
+├──────────────────────────────────────────────────────────────┤
+│ Queue — highest-match jobs not yet applied                   │
+│ [job row]  [match 87]  [T tailor] [A applied] [O outreach]   │
+└──────────────────────────────────────────────────────────────┘
+```
+
+The **queue** is the centre of gravity. It's a keyboard-driven list: `J`/`K` to move, `T` to
+tailor, `A` to mark applied, `O` to open outreach, `Enter` for detail. A BDE should be able to work
+twenty jobs without touching the mouse. Time the interaction yourself — if it takes more than two
+keystrokes per job to progress, the design is wrong.
+
+"Start a run" opens focus mode (§9).
+
+**Empty:** no candidates assigned → a single card pointing at the manager. No jobs in queue → an
+illustration and a "capture jobs" action.
+
+### 3.2 MANAGER view — "the floor"
+
+Same shell, different content. Team throughput today versus the trailing seven-day average, a
+per-BDE strip (applications, responses, interviews, follow-ups overdue), candidates with no
+applications in 48 hours flagged in amber, and the pipeline funnel. Every per-BDE row clicks
+through to that BDE's filtered application tracker.
+
+This is the transparency feature made concrete. The manager should be able to answer "who is
+behind, and on which candidate" in under five seconds of looking at this screen.
+
+### 3.3 OWNER view — "the business"
+
+Manager content plus placements this quarter, time-to-placement trend, cost per placement, and
+seat / usage against plan. Read-only rollups; the owner drills into the manager views for detail.
+
+### 3.4 VIEWER view
+
+Manager view with every action stripped. No buttons in the DOM, not disabled buttons.
+
+---
+
+## 4. Candidates
+
+### 4.1 `/candidates` — list
+
+Toolbar: search, filters (status, work auth, employment type, assigned BDE, skills), density
+toggle, view toggle (table / cards), `New candidate`.
+
+Table columns: name + avatar, title, work auth chip, status, assigned BDE, applications (30d),
+active applications, interviews, last activity, match-ready resume count. Sortable, multi-select
+with a bulk bar (reassign, change status, export CSV).
+
+A BDE sees only assigned candidates and the assigned-BDE filter is hidden for them — there's
+nothing to filter by.
+
+**Empty:** first-run illustration + `Add your first candidate`. Filtered-to-nothing is a *different*
+empty state with a `Clear filters` action — don't reuse the first-run one.
+
+### 4.2 `/candidates/new`
+
+Single-column form, three sections: identity (name, email, phone, location, timezone), professional
+(title, years, work auth, employment type, rate expectation, availability), and sourcing (resume
+upload, LinkedIn URL, assigned BDE).
+
+The resume drop zone simulates a parse. Extracted fields land as `UNVERIFIED` and the form shows a
+review strip: *"14 fields drafted from the resume — review before saving."* Fields the user types
+by hand are `VERIFIED` immediately, because the user is the evidence.
+
+### 4.3 `/candidates/[id]` — detail
+
+The page a BDE lives in for one candidate. It answers, in order: *what needs me now*, *where does
+every submission stand*, *what did recruiters say*, *where do I submit next*.
+
+**Header.** Initials avatar, name, work-auth chip, candidate status, role · location · years ·
+target rate, availability and relocation. The owning BDE shows to managers and owners only — a BDE
+looking at their own candidate doesn't need it. Actions: `Find jobs` (runs the matching
+sequence inside the Jobs tab — never navigates away) and `Build resume`. Below it, the derived
+stat strip (applications, active, interviews, offers, response rate, days on bench); **every stat
+is a button** that opens the tab behind it.
+
+**Tabs** — sticky under the top bar, selection slides between tabs, the active tab is kept in the
+URL (`?tab=inbox`) so back/forward and shared links work. Arrow keys move between tabs. Counts
+show on Applications and Resumes; a dot marks Overview and Inbox when something is new.
+
+| # | Tab | Why it sits here |
+|---|---|---|
+| 1 | **Overview** | What needs the BDE tonight, then the pipeline and the facts he quotes on calls |
+| 2 | **Applications** | Where every submission stands — the working board |
+| 3 | **Inbox** | What recruiters said, matched to applications, with suggested status updates |
+| 4 | **Jobs** | Where to submit next, ranked for this profile |
+| 5 | **Resumes** | What to submit — the master resume is the verified source |
+| 6 | **Documents** | What vendors ask for: visa papers, ID, certificates, screening answers |
+| 7 | **Activity** | The audit trail a manager opens |
+
+There is no separate Profile/Record tab: it duplicated the master resume and left the BDE unsure
+where to fix a claim. The Record stays as the data model behind the master resume.
+
+#### Overview
+Left: **Needs your attention** — upcoming recruiter calls and interviews, recruiter emails whose
+stage the pipeline hasn't caught up with (one-click *Move to …*), follow-ups due within a day,
+"connect the inbox" when it isn't, visa / ID / certificate files expiring within 60 days, and
+unverified claims in the master resume (*Review* opens the builder on the first one). Five show, the rest behind
+*Show more*; resolving one animates it out. Then **Pipeline** (current count per stage, animated
+bars, each row opens the board) and **Latest from recruiters** (four newest emails, or the connect
+prompt). Right: **Submission facts** (work authorization + validity, rate and floor, availability
+and notice, employment types, relocation, target roles — editable in place, the rate floor can't
+exceed the target), **Resume readiness** (verified share of the master resume's claims, with *Review
+unverified claims* → `/resumes/[id]?review=1`), **Best new matches**.
+
+#### Applications
+Toolbar: *Active / All* and *Board / List*, plus a one-line summary. When emails suggest updates, a
+violet strip lists them as one-click chips. **Board** — the shared `ApplicationBoard`: one column
+per stage, drag one stage forward (anything else snaps back with the reason), a read-only *Closed*
+column under *All*. Cards show role, company, the latest recruiter email as a chip, days in stage
+(amber at 3, red at 7) and the next follow-up. **List** — role, company, status, six-dot stage
+progress, latest email, applied date. Enter or click opens the **application drawer**: stage
+progress with dates, the suggested update, *Move to next stage* / *Mark not selected*, the
+**resume sent** (the exact version the client received — master or tailored, template, ATS, with a
+warning when the resume has been edited since), every matched email, and a link to
+`/applications/[id]`.
+
+#### Inbox
+The candidate's Google account, connected by the BDE (candidates apply from their own address).
+Not connected → a connect card: what it does, a read-only consent step, then a staged first sync
+("Connecting → Reading → Matching to N applications → Found N updates"). Connected → address, last
+sync, *Sync now*, *Disconnect*; filter chips with counts (All, Needs update, Interviews,
+Shortlisted, Calls, Offers, Not selected); list + reader. The reader shows the proposed call or
+interview time (IST, relative), the matched application with its progress, and either *Move to …*
+or "pipeline is up to date". Nothing changes on its own — every update is confirmed.
+
+Signals detected per email: `SHORTLISTED`, `CALL_REQUEST`, `INTERVIEW_SCHEDULED`, `ASSESSMENT`,
+`OFFER`, `REJECTED`, `CONFIRMATION`. A suggestion is **derived**: it exists only while the
+application's stage is behind the stage the email implies.
+
+#### Jobs
+The profile-locked job explorer. `Find jobs` plays the matching sequence (read profile → filter by
+work authorization → score → rank) with real counts, then the ranked list staggers in.
+
+#### Resumes
+The same cards as the Resume Builder library, master first, plus a *New resume* tile. A note explains
+that the master resume is the verified source every tailored copy reuses. The export lock shows on
+the card itself. Claims are verified in the builder (*Verify with evidence*); a claim cannot be
+verified without an attached evidence id.
+
+#### Documents
+Left: an upload area (drop or browse; the type is detected from the file name and can be changed;
+expiry is asked for visa, ID and certificates), then files grouped by type — work authorization,
+identity, resumes, certifications, education, employment letters. Each row: title, file, size,
+added, an expiry badge (expired / expires in N days / valid to), "Evidence for N claims" when the
+file backs verified claims, *Copy link*, and remove with an inline confirm. An amber banner lists
+anything expired or expiring within 60 days. Right (sticky): **Screening answers** — the
+candidate's saved answers to standard vendor questions, each with *Copy*, plus *Copy all*.
+
+#### Activity
+Status changes and recruiter emails, newest first, grouped by day under sticky day headers, with
+actor ("Adnan Khan" / "Automated"). Filter: Everything / Status changes / Emails. Any row opens its
+application.
+
+---
+
+## 5. Jobs
+
+### 5.1 `/jobs` — feed
+
+Two panes: filter rail (240px) + virtualised list. Filters: candidate context, match score range,
+work-auth fit, client type, remote mode, rate, posted within, source type, hide already-applied.
+
+**Candidate context is the important control.** Selecting a candidate at the top of the rail
+re-scores the whole feed against that candidate and enables `T` / `A` / `O` on every row. Without a
+candidate selected, the feed is just a list; with one, it's a work queue.
+
+Row: title, company + verification badge, location + remote mode, rate, posted age, source chip,
+`MatchScoreBar`, and inline actions. Selecting a row opens a peek panel on the right without
+leaving the list — the BDE evaluates most jobs without ever navigating.
+
+Virtualise past 100 rows. 500 rows must scroll at 60fps.
+
+**Empty:** no jobs captured → a card explaining the two capture paths with a link to `/jobs/capture`.
+Filtered to nothing → clear-filters state.
+
+### 5.2 `/jobs/capture`
+
+Three tabs.
+
+**Paste** — a textarea that accepts a URL or a raw job description. On submit, a 2–4s parse
+simulation, then a review form with every extracted field as `UNVERIFIED`, side by side with the
+source text so the BDE can check the parse. Confirm to save.
+
+**Bulk paste** — multiple URLs, one per line. A progress list with per-row status (queued →
+parsing → parsed → duplicate → failed). Duplicates surface the existing job with a "view" link
+rather than silently dropping.
+
+**Extension** — an install/status panel. Not connected to anything in this repo; renders the
+"not installed" and "connected" states from a store flag.
+
+Dedup runs on capture. A duplicate shows a comparison card: what you pasted, what already exists,
+and a choice of merge or keep separate.
+
+### 5.3 `/jobs/[id]`
+
+Header: title, company, verification badge, source chip with legal basis, posted and captured
+timestamps. Two columns: description with matched requirements highlighted, and a right rail with
+the match panel (`ScoringRecord` — requirement-by-requirement HAVE / MISSING / ADJACENT), company
+card (H-1B / LCA data, client type, prior applications from this firm), and the action stack
+(`Tailor resume`, `Mark applied`, `Start outreach`, `Save`, `Dismiss`).
+
+If the match is `LIGHT` depth, the panel shows a `Run full analysis` action that upgrades it —
+matching the JobNavigator cost-control split. The upgrade is an AI simulation per
+`03-MOCK-DATA.md §5`: staged progress, 2–5s, output arrives `UNVERIFIED`.
+
+---
+
+## 6. Resume builder — `/resumes` and `/resumes/[id]`
+
+**Library — `/resumes`.** Every resume as a card: file icon (master vs tailored), resume name,
+candidate, role, and monospace tags for type, version, ATS score and template. The footer shows
+"Ready to export" or the unverified-claim count. Search, a type filter and a candidate filter sit
+above the grid. **New resume** and **Upload resume** are the page actions. Clicking a card opens it in
+Builder mode; the card's **View** button opens it in Viewer mode.
+
+**The studio — `/resumes/[id]`.** Opens full screen, outside the app shell: no sidebar, no top nav.
+A close button (and `Esc`) returns to wherever it was opened from. `?mode=view` opens in Viewer mode;
+`/resumes/new` starts a new resume from a candidate's record or blank, and
+`/resumes/new?upload=<file>` opens a parsed upload in which every line starts unverified.
+
+```
+┌ ✕ │ Master Resume [Master]        [ Builder | Viewer ]      Saved  [Tailor with AI] [Export PDF] ┐
+├──────────────────────────────┬─────────────────────────────────────────────────────────────────┤
+│ ▸ Header                     │ Template ‹ Classic Serif ▾ ›   − Fit · 91% +   2 pages · Letter  │
+│ ▸ Summary        1 to verify │ ┌─────────────────────────────┐                                 │
+│ ▾ Experience (4)             │ │  live page, chosen template │                                 │
+│    ▸ Sr. Java Dev · Acme …   │ │  page-break guides          │                                 │
+│ ▸ Skills (7)                 │ └─────────────────────────────┘                                 │
+├──────────────────────────────┴─────────────────────────────────────────────────────────────────┤
+│ 🔒 3 unverified claims need evidence before export.  Review next →   7 of 10 verified · 92 words │
+└────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+- **Builder mode** — collapsible section forms on the left (Header, Summary, Experience, Skills,
+  Education, Certifications, Projects), live page on the right. Rows reorder and remove in place.
+  Every claim shows its state chip and a **Verify with evidence** action. Enter in a bullet starts
+  the next one.
+- **Viewer mode** — the page itself, centered, with a slim outline rail. Click any text to edit it
+  where it sits. Selecting text in a claim raises a floating toolbar: bold, italic, underline and
+  **Ask AI** (improve wording, make concise, add measurable impact, fix grammar; `⌘J` opens it).
+- **Templates** — six styles (Classic Serif, Modern, Minimal, Executive, Compact, Two Column). The
+  ‹ › arrows (or `[` `]`) step through them; the name opens a strip of live thumbnails rendered from
+  this resume's own content. The page is always white in both themes — it is the printed document.
+- **AI output always lands unverified** — a rewrite from the selection toolbar or a **Tailor with
+  AI** run marks the affected claims unverified and flashes them.
+- **Export PDF** prints a clean copy of the page through the browser's print dialog.
+
+**The export gate.** The export button is disabled whenever any claim in the resume is `UNVERIFIED`.
+The disabled state carries the reason: *"3 claims need review before export"* with a link that
+focuses the first one. This is the one place a disabled control is correct — the block is the
+product's point, and hiding it would teach the wrong model.
+
+`CONTRADICTED` claims are excluded from the page and the export entirely, and shown in Builder mode
+with a line-through.
+
+---
+
+## 7. Applications — `/applications`
+
+Three views over one dataset, toggled in the toolbar, selection preserved across the switch.
+
+### 7.1 Kanban
+Columns per `ApplicationStatus`. Cards: candidate, job, company, days in stage, next follow-up,
+owning BDE. Drag between columns transitions status optimistically and writes a ledger event; an
+invalid transition snaps back with a toast naming why. Column headers carry derived counts and
+column WIP is visible at a glance.
+
+### 7.2 Table
+TanStack Table, virtualised, grouping by candidate / BDE / company / status, column visibility and
+order persisted, CSV export of the current view. This is the manager's view.
+
+### 7.3 Calendar
+Month and week. Applications on their submitted date, interviews on their scheduled date,
+follow-ups on their due date. Click any item for the peek panel. Useful for spotting the days
+nobody worked.
+
+### 7.4 `/applications/[id]`
+Header with candidate → job → company and the current status. Body: the status timeline with dual
+timestamps and actor, the resume version used (with a link to the exact version, not the latest),
+the outreach thread, follow-ups, screening answers pulled from the Q&A bank, and notes.
+
+Status changes happen here or on the kanban; both write the same ledger event.
+
+---
+
+## 8. Outreach, follow-ups, analytics, ledger
+
+### 8.1 `/outreach`
+Left: contact list per application, with verification state. Right: composer with template
+selection, merge-field preview, and a claim check that refuses to send if the message body contains
+a unverified claim pulled from the record. Sent items show channel, timestamp, and result.
+
+There is no sending in this repo. "Send" logs the outreach locally and advances the mock thread.
+
+### 8.2 `/followups`
+Grouped: overdue (red), today, this week, later. Row: candidate, job, kind, due, owner. Actions:
+done, snooze (1d / 3d / 1w / custom), cancel, open application. Bulk complete from the selection
+bar. Overdue count feeds the sidebar badge.
+
+The default rhythm is day-3 LinkedIn, day-7 email — generated when an application moves to
+`APPLIED` and visible here immediately.
+
+### 8.3 `/analytics` — MANAGER+
+Date range and comparison period across the top. Sections: funnel (applied → response → screening →
+interview → offer → placed, with conversion between each), throughput over time by BDE, per-BDE
+table with submissions / response rate / interviews / placements, per-candidate performance,
+company response rates, and source effectiveness.
+
+Every chart is Recharts, every chart has a table equivalent behind a toggle, and every chart has an
+empty state for ranges with no data. Charts must be readable in both themes — check the axis and
+grid colours, not just the series.
+
+### 8.4 `/ledger`
+Append-only, immutable, virtualised. Filters: actor, entity type, action, date range. Row: dual
+timestamp, actor, action, entity, and a diff expander showing before and after. No edit, no delete,
+no exceptions — the ledger is the thing the manager trusts.
+
+---
+
+## 9. Focus mode
+
+Triggered by "Start a run" on the BDE dashboard. Full-screen, chrome hidden, one job at a time
+against the selected candidate:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ Adnan Khan · job 7 of 24 · 18 min elapsed        [Esc exit]  │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│   Sr. Java Developer · Acme Corp · Remote · $75/hr C2C       │
+│   Match 87 — 9 of 11 requirements                            │
+│   [requirement chips]                                        │
+│                                                              │
+│   [T] Tailor    [A] Applied    [O] Outreach    [S] Skip      │
+└──────────────────────────────────────────────────────────────┘
+```
+
+Single keystroke per decision, auto-advance, progress across the top. `Esc` exits and returns to
+the dashboard with a session summary: jobs reviewed, applications logged, time spent.
+
+This screen is the time-compression feature in its purest form. If it works, the product works.
+Build it in Phase 5, after the pieces it composes are solid — but design everything before it with
+the knowledge that it exists.
+
+---
+
+## 10. Settings
+
+| Route | Role | Content |
+|---|---|---|
+| `/settings` | OWNER | Firm name, logo, timezone, shift window, default follow-up cadence |
+| `/settings/team` | OWNER, MANAGER | Member table, invite flow, role changes, candidate assignment matrix |
+| `/settings/templates` | OWNER, MANAGER | Resume templates and outreach templates, with preview and merge-field reference |
+| `/settings/preferences` | all | Theme, density, keyboard shortcut sheet, notification preferences, timezone display |
+
+`/admin` is `PLATFORM_ADMIN` only: firm list, seat usage, feature flags. Mock data only, and it
+never appears in the sidebar for any other role.
+
+---
+
+## 11. Responsive
+
+| Width | Behaviour |
+|---|---|
+| ≥ 1440px | Full layout, all panes, peek panels |
+| 1024–1439px | Sidebar auto-collapses, three-pane becomes two with a preview toggle |
+| 768–1023px | Sidebar becomes a drawer, tables scroll horizontally with a pinned first column |
+| < 768px | Read-mostly: dashboard, candidate detail, application detail, follow-ups. Kanban becomes a status-filtered list. The resume builder stacks: Builder mode shows the section forms full width; Viewer mode fits the page to the screen. |
+
+Mobile is for checking, not for working. Be honest about that in the UI rather than shipping a
+cramped builder nobody can use.
+
+---
+
+## 12. Error and edge states to build explicitly
+
+- Adapter 500 → error card with retry, never a blank screen
+- Adapter 404 on a detail route → not-found state with a back link
+- Role-forbidden route → a clear "you don't have access" screen, not a redirect loop
+- Offline → a topbar banner, queued actions held in the store
+- Slow AI simulation → staged progress with a cancel action after 8 seconds
+- Empty after filtering → distinct from empty because nothing exists
+- Optimistic update rejected → revert with a toast naming the reason
+- Resume export blocked → gate message with a jump-to-claim link
+- Duplicate job on capture → comparison card, merge or keep
+- Session role switched mid-flight → refetch, don't leave stale data on screen
