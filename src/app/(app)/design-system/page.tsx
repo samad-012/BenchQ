@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Tag } from "@/components/ui/tag";
 import { formatDueDate } from "@/lib/format/timezone";
-import { daysFromNow } from "@/mocks/fixtures/_seed";
 import { StageOneShowcase } from "@/components/dev/stage-one-showcase";
 import { DesignFoundations, DesignPatterns } from "@/components/dev/design-foundations";
 
@@ -26,6 +25,7 @@ type TaskRow = {
   dueAt: string;
   ring: TaskRing;
 };
+const daysFromNow = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString();
 const INITIAL_ROWS: TaskRow[] = [
   { id: "T-01", task: "Low-Fidelity Wireframe", description: "Create a Low-Fidelity Wireframe for a new candidate intake flow", assignees: ["Zara Khan", "Rahul Nair"], dueAt: daysFromNow(3), ring: "todo" },
   { id: "T-02", task: "Visual Style Guide", description: "Design a Visual Style Guide including type, colour and spacing tokens", assignees: ["Kavya Iyer", "Zara Khan", "Harish Rao"], dueAt: daysFromNow(4), ring: "todo" },

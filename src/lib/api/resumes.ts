@@ -1,12 +1,10 @@
-import { arrayOf, http } from "./client";
-import { ResumeSchema, type Resume } from "@/lib/schemas/resume";
+import { localData } from "@/lib/local-data/store";
+import type { Resume } from "@/lib/schemas/resume";
 
 export const resumesApi = {
-  list: () => http.get<Resume[]>("/api/resumes", { schema: arrayOf(ResumeSchema) }),
+  list: (): Promise<Resume[]> => localData.resumes.list(),
 
-  byCandidate: (candidateId: string) =>
-    http.get<Resume[]>(`/api/candidates/${candidateId}/resumes`, { schema: arrayOf(ResumeSchema) }),
+  byCandidate: (candidateId: string): Promise<Resume[]> => localData.resumes.byCandidate(candidateId),
 
-  byId: (id: string) =>
-    http.get<Resume>(`/api/resumes/${id}`, { schema: ResumeSchema }),
+  byId: (id: string): Promise<Resume> => localData.resumes.byId(id),
 };

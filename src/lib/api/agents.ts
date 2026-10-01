@@ -1,19 +1,9 @@
-import { http } from "./client";
-import {
-  AgentDraftSchema,
-  type AgentDraft,
-  type TailorResumeInput,
-} from "@/lib/schemas/agent";
-import { RewriteResultSchema, type RewriteInput, type RewriteResult } from "@/lib/schemas/resume-document";
+import { localAgents } from "@/lib/local-data/agents";
+import type { AgentDraft, TailorResumeInput } from "@/lib/schemas/agent";
+import type { RewriteInput, RewriteResult } from "@/lib/schemas/resume-document";
 
 export const agentsApi = {
-  rewrite: (input: RewriteInput, signal?: AbortSignal) =>
-    http.post<RewriteResult>("/api/agents/rewrite", { body: input, schema: RewriteResultSchema, signal }),
+  rewrite: (input: RewriteInput, signal?: AbortSignal): Promise<RewriteResult> => localAgents.rewrite(input, signal),
 
-  tailorResume: (input: TailorResumeInput, signal?: AbortSignal) =>
-    http.post<AgentDraft>("/api/agents/tailor-resume", {
-      body: input,
-      schema: AgentDraftSchema,
-      signal,
-    }),
+  tailorResume: (input: TailorResumeInput, signal?: AbortSignal): Promise<AgentDraft> => localAgents.tailorResume(input, signal),
 };

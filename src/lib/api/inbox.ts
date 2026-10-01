@@ -1,16 +1,12 @@
-import { http } from "./client";
-import { CandidateInboxSchema, InboxMessageSchema, type CandidateInbox, type InboxMessage } from "@/lib/schemas/inbox";
+import { localData } from "@/lib/local-data/store";
+import type { CandidateInbox, InboxMessage } from "@/lib/schemas/inbox";
 
 export const inboxApi = {
-  byCandidate: (candidateId: string) =>
-    http.get<CandidateInbox>(`/api/candidates/${candidateId}/inbox`, { schema: CandidateInboxSchema }),
+  byCandidate: (candidateId: string): Promise<CandidateInbox> => localData.inbox.byCandidate(candidateId),
 
-  connect: (candidateId: string) =>
-    http.post<CandidateInbox>(`/api/candidates/${candidateId}/inbox/connect`, { schema: CandidateInboxSchema }),
+  connect: (candidateId: string): Promise<CandidateInbox> => localData.inbox.connect(candidateId),
 
-  disconnect: (candidateId: string) =>
-    http.post<CandidateInbox>(`/api/candidates/${candidateId}/inbox/disconnect`, { schema: CandidateInboxSchema }),
+  disconnect: (candidateId: string): Promise<CandidateInbox> => localData.inbox.disconnect(candidateId),
 
-  markRead: (messageId: string) =>
-    http.post<InboxMessage>(`/api/inbox/messages/${messageId}/read`, { schema: InboxMessageSchema }),
+  markRead: (messageId: string): Promise<InboxMessage> => localData.inbox.markRead(messageId),
 };

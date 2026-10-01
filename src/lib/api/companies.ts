@@ -1,10 +1,8 @@
-import { arrayOf, http } from "./client";
-import { CompanySchema, type Company } from "@/lib/schemas/company";
+import { localData } from "@/lib/local-data/store";
+import type { Company } from "@/lib/schemas/company";
 
 export const companiesApi = {
-  list: () =>
-    http.get<Company[]>("/api/companies", { schema: arrayOf(CompanySchema) }),
+  list: (): Promise<Company[]> => localData.companies.list(),
 
-  byId: (id: string) =>
-    http.get<Company>(`/api/companies/${id}`, { schema: CompanySchema }),
+  byId: (id: string): Promise<Company> => localData.companies.byId(id),
 };

@@ -1,5 +1,5 @@
-import { arrayOf, http } from "./client";
-import { CandidateSchema, type Candidate, type UpdateCandidate } from "@/lib/schemas/candidate";
+import { localData } from "@/lib/local-data/store";
+import type { Candidate, UpdateCandidate } from "@/lib/schemas/candidate";
 
 /**
  * Candidates adapter — the one place any screen touches the candidate API.
@@ -7,12 +7,9 @@ import { CandidateSchema, type Candidate, type UpdateCandidate } from "@/lib/sch
  * nothing else in the codebase changes.
  */
 export const candidatesApi = {
-  list: () =>
-    http.get<Candidate[]>("/api/candidates", { schema: arrayOf(CandidateSchema) }),
+  list: (): Promise<Candidate[]> => localData.candidates.list(),
 
-  byId: (id: string) =>
-    http.get<Candidate>(`/api/candidates/${id}`, { schema: CandidateSchema }),
+  byId: (id: string): Promise<Candidate> => localData.candidates.byId(id),
 
-  update: (id: string, body: UpdateCandidate) =>
-    http.patch<Candidate>(`/api/candidates/${id}`, { schema: CandidateSchema, body }),
+  update: (id: string, body: UpdateCandidate): Promise<Candidate> => localData.candidates.update(id, body),
 };

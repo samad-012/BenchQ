@@ -1,6 +1,6 @@
-import { arrayOf, http } from "./client";
-import { UserSchema, type User } from "@/lib/schemas/session";
+import { localData } from "@/lib/local-data/store";
+import type { User } from "@/lib/schemas/session";
 
 export const teamApi = {
-  list: () => http.get<User[]>("/api/team", { schema: arrayOf(UserSchema) }),
+  list: (): Promise<User[]> => localData.team(),
 };

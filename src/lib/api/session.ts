@@ -1,7 +1,6 @@
-import { http } from "./client";
-import { SessionSchema, type Session } from "@/lib/schemas/session";
+import { localData } from "@/lib/local-data/store";
+import type { Session } from "@/lib/schemas/session";
 
 export const sessionApi = {
-  current: () =>
-    http.get<Session>("/api/session", { schema: SessionSchema }),
+  current: (): Promise<Session> => localData.session(),
 };

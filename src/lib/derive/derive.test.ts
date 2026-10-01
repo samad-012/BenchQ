@@ -1,10 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { applicationsFixture } from "@/mocks/fixtures/applications";
-import { candidatesFixture } from "@/mocks/fixtures/candidates";
-import { resumesFixture } from "@/mocks/fixtures/resumes";
+import candidatesSeed from "@/data/candidates.json";
+import applicationsSeed from "@/data/applications.json";
+import resumesSeed from "@/data/resumes.json";
+import { arrayOf } from "@/lib/api/client";
+import { CandidateSchema } from "@/lib/schemas/candidate";
+import { ApplicationSchema } from "@/lib/schemas/application";
+import { ResumeSchema } from "@/lib/schemas/resume";
 import { deriveCandidateStats } from "./candidate-stats";
 import { deriveExportGate } from "./export-gate";
 import { deriveFunnel } from "./funnel";
+
+const candidatesFixture = arrayOf(CandidateSchema).parse(candidatesSeed);
+const applicationsFixture = arrayOf(ApplicationSchema).parse(applicationsSeed);
+const resumesFixture = arrayOf(ResumeSchema).parse(resumesSeed);
 
 describe("deriveCandidateStats", () => {
   it("derives counts from applications instead of stored summary values", () => {

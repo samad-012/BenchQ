@@ -1,0 +1,64 @@
+{
+  "firm": {
+    "id": "firm_hts",
+    "name": "Hyderabad Tech Staffing LLC",
+    "slug": "hyderabad-tech-staffing",
+    "logoUrl": null,
+    "primaryTimezone": "Asia/Kolkata",
+    "clientTimezone": "America/New_York",
+    "truthGuardMode": "BALANCED",
+    "applicationExpiryDays": 30
+  },
+  "users": [
+    {
+      "id": "user_imran",
+      "firmId": "firm_hts",
+      "name": "Imran Shaikh",
+      "email": "imran@htsstaffing.com",
+      "role": "OWNER",
+      "avatarUrl": null,
+      "isActive": true,
+      "lastActiveAt": "2026-10-01T05:17:52.943Z"
+    },
+    {
+      "id": "user_fatima",
+      "firmId": "firm_hts",
+      "name": "Fatima Reddy",
+      "email": "fatima@htsstaffing.com",
+      "role": "MANAGER",
+      "avatarUrl": null,
+      "isActive": true,
+      "lastActiveAt": "2026-10-01T04:17:52.943Z"
+    },
+    {
+      "id": "user_adnan",
+      "firmId": "firm_hts",
+      "name": "Adnan Khan",
+      "email": "adnan@htsstaffing.com",
+      "role": "BDE",
+      "avatarUrl": null,
+      "isActive": true,
+      "lastActiveAt": "2026-10-01T05:47:52.943Z"
+    },
+    {
+      "id": "user_sneha",
+      "firmId": "firm_hts",
+      "name": "Sneha Rao",
+      "email": "sneha@htsstaffing.com",
+      "role": "BDE",
+      "avatarUrl": null,
+      "isActive": true,
+      "lastActiveAt": "2026-10-01T03:17:52.943Z"
+    },
+    {
+      "id": "user_vikram",
+      "firmId": "firm_hts",
+      "name": "Vikram Desai",
+      "email": "vikram@htsstaffing.com",
+      "role": "BDE",
+      "avatarUrl": null,
+      "isActive": true,
+      "lastActiveAt": "2026-10-01T00:17:52.943Z"
+    }
+  ]
+}
