@@ -40,7 +40,6 @@ services:
         required: false
     environment:
       DATABASE_URL: postgresql://jobnavigator:${POSTGRES_PASSWORD:-password}@db:5432/jobnavigator
-      CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN:-}
     ports:
       - "127.0.0.1:8000:8000"   # the Next.js app proxies /api/* here (BACKEND_URL)
     depends_on:
