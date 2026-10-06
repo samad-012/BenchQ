@@ -53,6 +53,20 @@ services:
       # agy keeps its OAuth token in a file here; no keyring in this image.
       - antigravity_auth:/root/.gemini
 
+  # Database viewer, off by default: docker compose --profile tools up -d adminer
+  # then open http://localhost:8081 (server db, user/db jobnavigator, password "password").
+  adminer:
+    image: adminer:latest
+    profiles: ["tools"]
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    ports:
+      - "127.0.0.1:8081:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   pgdata:
   codex_auth:

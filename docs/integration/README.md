@@ -205,6 +205,8 @@ references breaks joins, because mock IDs (`job_0001`) don't match backend UUIDs
    `{"status":"ok","service":"JobNavigator",…}`.
 4. Restart `pnpm dev` whenever `.env.local` changes — `NEXT_PUBLIC_*` values are baked in at
    start.
+5. To look inside the database, see [`database-viewer.md`](./database-viewer.md) (Adminer at
+   `http://localhost:8081`).
 
 ---
 
