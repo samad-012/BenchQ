@@ -10,6 +10,57 @@ mapping needs a product decision, stop and ask.
 
 ---
 
+## First day — from clone to your first module
+
+**You need:** Git, Docker Desktop (running), and Node 22+. On an Apple-silicon Mac,
+`node -p process.arch` must print `arm64`. If it prints `x64`, install an arm64 build first (see
+"Known setup pitfalls" in `00-foundation.md`).
+
+```bash
+# 1. Get the code. Until it's merged, all integration work starts from this branch.
+git clone https://github.com/samad-012/BenchQ.git && cd BenchQ
+git checkout integration/backend-foundation
+
+# 2. Frontend dependencies
+nvm use                      # reads .nvmrc (Node 22)
+corepack enable && pnpm install
+
+# 3. Env files (both git-ignored; the defaults work for local development)
+cp .env.example .env.local
+cp backend/.env.example backend/.env
+
+# 4. Backend + database. The first build takes several minutes (Playwright).
+docker compose up -d --build db backend
+curl http://localhost:8000/health        # {"status":"ok","service":"JobNavigator",...}
+
+# 5. Frontend
+pnpm dev                                 # http://localhost:3000
+```
+
+**Check it works:**
+
+- `http://localhost:3000/health` shows the backend's health JSON. That means the frontend → backend
+  proxy works.
+- `http://localhost:3000/dashboard` renders. Every screen still runs on mock data until a module is
+  switched on.
+- `pnpm typecheck && pnpm lint && pnpm test` all pass.
+
+**Then pick up a module:**
+
+1. Choose the next free module on the [module board](#module-board) — respect **Depends on** — and
+   put your name in **Owner**.
+2. Read that module's file end to end.
+3. Create your branch from `integration/backend-foundation`: `git checkout -b integrate/<module>`.
+4. Follow [the workflow for one module](#the-workflow-for-one-module). If you use Claude, start it
+   with the prompt in [Briefing a Claude session](#briefing-a-claude-session).
+5. Open your PR **into `integration/backend-foundation`** (or the main branch, once that's merged).
+
+The database starts empty apart from a few seeded companies. To get real data, add companies or
+jobs through the backend's API docs at `http://localhost:8000/docs` (e.g. `POST /api/jobs/manual`).
+To look inside the database, see [`database-viewer.md`](./database-viewer.md).
+
+---
+
 ## The backend
 
 The backend is **JobNavigator** (FastAPI + SQLAlchemy + PostgreSQL, MIT licence, upstream
@@ -122,7 +173,8 @@ schemas reject both. Declare every backend timestamp as `z.string()` and convert
 
 ## The workflow for one module
 
-1. **Branch** `integrate/<module>` from the main branch.
+1. **Branch** `integrate/<module>` from `integration/backend-foundation` (from the main branch
+   once that branch has been merged).
 2. **Run both apps** (see "Running locally" below) and confirm `GET /health` through the proxy.
 3. **Capture real responses** from the backend for each endpoint you need, by browser or
    `curl -b cookies.txt`, and save them to `src/lib/api/dto/__samples__/<module>.json`. Trim to a few
@@ -179,34 +231,24 @@ references breaks joins, because mock IDs (`job_0001`) don't match backend UUIDs
 
 ## Running locally
 
-**Requirements:** Node 22+ (`nvm use`), pnpm via corepack, Docker (for Postgres), Python 3.12.
+**Requirements:** Node 22+ (`nvm use`), pnpm via corepack, Docker. Python 3.12 only if you run
+the backend outside Docker.
 
-1. Create `.env.local` in the repo root (it is git-ignored):
+| Task | Command |
+|---|---|
+| Env files (once) | `cp .env.example .env.local` and `cp backend/.env.example backend/.env` |
+| Start backend + database | `docker compose up -d db backend` (add `--build` after backend code changes) |
+| Backend health | `curl http://localhost:8000/health` |
+| Backend logs | `docker compose logs -f backend` |
+| Stop backend + database | `docker compose stop` (data is kept in the `pgdata` volume) |
+| Frontend | `pnpm dev`, then `http://localhost:3000/health` shows the backend's JSON |
+| Switch a module to the backend | add it to `NEXT_PUBLIC_LIVE_MODULES` in `.env.local`, restart `pnpm dev` |
+| Backend tests | see "Run it" in [`00-foundation.md`](./00-foundation.md) |
+| Look inside the database | [`database-viewer.md`](./database-viewer.md) (Adminer at `http://localhost:8081`) |
 
-   ```bash
-   # Where the FastAPI backend runs. Next.js proxies /api/* and /health to it.
-   # Leave empty to run the frontend on mocks only.
-   BACKEND_URL=http://localhost:8000
-
-   # Comma-separated modules served by the real backend; everything else uses src/mocks.
-   # Names are listed in src/lib/api/config.ts, e.g. companies,jobs
-   NEXT_PUBLIC_LIVE_MODULES=
-
-   # Simulated latency for mocked responses, in milliseconds.
-   NEXT_PUBLIC_MOCK_DELAY_MS=60
-
-   # Interim (Modules 03/04, decision D1): the mock candidate that live applications and
-   # resumes are attached to, because the backend has no candidates.
-   NEXT_PUBLIC_DEFAULT_CANDIDATE_ID=cand_01
-   ```
-
-2. Start the backend (exact commands live in `00-foundation.md` once the monorepo exists).
-3. `pnpm dev`, then open `http://localhost:3000/health`. It should show the backend's
-   `{"status":"ok","service":"JobNavigator",…}`.
-4. Restart `pnpm dev` whenever `.env.local` changes — `NEXT_PUBLIC_*` values are baked in at
-   start.
-5. To look inside the database, see [`database-viewer.md`](./database-viewer.md) (Adminer at
-   `http://localhost:8081`).
+The env variables are documented inside `.env.example` (frontend) and `backend/.env.example`
+(backend). Restart `pnpm dev` whenever `.env.local` changes, because `NEXT_PUBLIC_*` values are
+baked in at start.
 
 ---
 

@@ -104,8 +104,7 @@ real data into it use JobNavigator's own flows — add companies and run a scrap
 
 ## Part B — Connect the frontend
 
-1. Create `.env.local` from the template in `docs/integration/README.md`, with
-   `BACKEND_URL=http://localhost:8000`.
+1. `cp .env.example .env.local`. The template already has `BACKEND_URL=http://localhost:8000`.
 2. `pnpm dev`, open `http://localhost:3000/health` → backend JSON. That proves the proxy.
 3. Nothing else needs to change yet: with `NEXT_PUBLIC_LIVE_MODULES` empty, every screen still runs
    on mocks.
