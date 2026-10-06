@@ -1,12 +1,13 @@
-import { localData } from "@/lib/local-data/store";
 import type { CandidateInbox, InboxMessage } from "@/lib/schemas/inbox";
 
+const mock = () => import("@/mocks/inbox").then((m) => m.inboxMock);
+
 export const inboxApi = {
-  byCandidate: (candidateId: string): Promise<CandidateInbox> => localData.inbox.byCandidate(candidateId),
+  byCandidate: async (candidateId: string): Promise<CandidateInbox> => (await mock()).byCandidate(candidateId),
 
-  connect: (candidateId: string): Promise<CandidateInbox> => localData.inbox.connect(candidateId),
+  connect: async (candidateId: string): Promise<CandidateInbox> => (await mock()).connect(candidateId),
 
-  disconnect: (candidateId: string): Promise<CandidateInbox> => localData.inbox.disconnect(candidateId),
+  disconnect: async (candidateId: string): Promise<CandidateInbox> => (await mock()).disconnect(candidateId),
 
-  markRead: (messageId: string): Promise<InboxMessage> => localData.inbox.markRead(messageId),
+  markRead: async (messageId: string): Promise<InboxMessage> => (await mock()).markRead(messageId),
 };

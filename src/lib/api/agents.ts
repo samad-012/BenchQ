@@ -1,9 +1,12 @@
-import { localAgents } from "@/lib/local-data/agents";
 import type { AgentDraft, TailorResumeInput } from "@/lib/schemas/agent";
 import type { RewriteInput, RewriteResult } from "@/lib/schemas/resume-document";
 
-export const agentsApi = {
-  rewrite: (input: RewriteInput, signal?: AbortSignal): Promise<RewriteResult> => localAgents.rewrite(input, signal),
+const mock = () => import("@/mocks/agents").then((m) => m.agentsMock);
 
-  tailorResume: (input: TailorResumeInput, signal?: AbortSignal): Promise<AgentDraft> => localAgents.tailorResume(input, signal),
+export const agentsApi = {
+  rewrite: async (input: RewriteInput, signal?: AbortSignal): Promise<RewriteResult> =>
+    (await mock()).rewrite(input, signal),
+
+  tailorResume: async (input: TailorResumeInput, signal?: AbortSignal): Promise<AgentDraft> =>
+    (await mock()).tailorResume(input, signal),
 };

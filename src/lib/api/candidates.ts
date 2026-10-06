@@ -1,15 +1,11 @@
-import { localData } from "@/lib/local-data/store";
 import type { Candidate, UpdateCandidate } from "@/lib/schemas/candidate";
 
-/**
- * Candidates adapter — the one place any screen touches the candidate API.
- * Today MSW intercepts these calls; later they hit the real backend and
- * nothing else in the codebase changes.
- */
+const mock = () => import("@/mocks/candidates").then((m) => m.candidatesMock);
+
 export const candidatesApi = {
-  list: (): Promise<Candidate[]> => localData.candidates.list(),
+  list: async (): Promise<Candidate[]> => (await mock()).list(),
 
-  byId: (id: string): Promise<Candidate> => localData.candidates.byId(id),
+  byId: async (id: string): Promise<Candidate> => (await mock()).byId(id),
 
-  update: (id: string, body: UpdateCandidate): Promise<Candidate> => localData.candidates.update(id, body),
+  update: async (id: string, body: UpdateCandidate): Promise<Candidate> => (await mock()).update(id, body),
 };

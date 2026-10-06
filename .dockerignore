@@ -1,0 +1,7 @@
+# Only the backend image is built from this repo; send nothing else to Docker.
+*
+!backend/
+backend/**/__pycache__
+backend/**/*.pyc
+backend/.env
+backend/.linkedin_api

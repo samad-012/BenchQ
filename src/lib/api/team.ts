@@ -1,6 +1,7 @@
-import { localData } from "@/lib/local-data/store";
 import type { User } from "@/lib/schemas/session";
 
+const mock = () => import("@/mocks/team").then((m) => m.teamMock);
+
 export const teamApi = {
-  list: (): Promise<User[]> => localData.team(),
+  list: async (): Promise<User[]> => (await mock()).list(),
 };

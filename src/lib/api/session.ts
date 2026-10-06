@@ -1,6 +1,7 @@
-import { localData } from "@/lib/local-data/store";
 import type { Session } from "@/lib/schemas/session";
 
+const mock = () => import("@/mocks/session").then((m) => m.sessionMock);
+
 export const sessionApi = {
-  current: (): Promise<Session> => localData.session(),
+  current: async (): Promise<Session> => (await mock()).current(),
 };
