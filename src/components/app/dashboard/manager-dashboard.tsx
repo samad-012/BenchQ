@@ -14,6 +14,8 @@ import { FunnelBars } from "@/components/app/charts/funnel-bars";
 import { SkeletonCard } from "@/components/app/skeleton-card";
 import { PageHeader } from "@/components/app/page-header";
 
+const EMPTY: never[] = [];
+
 export function ManagerDashboard({ role = "MANAGER" }: { role?: "MANAGER" | "OWNER" | "VIEWER" }) {
   return (
     <div className="bq-page">
@@ -32,10 +34,10 @@ export function FloorContent() {
   const followupsQuery = useFollowups();
   const teamQuery = useTeam();
 
-  const candidates = candidatesQuery.data ?? [];
-  const applications = applicationsQuery.data ?? [];
-  const followups = followupsQuery.data ?? [];
-  const team = teamQuery.data ?? [];
+  const candidates = candidatesQuery.data ?? EMPTY;
+  const applications = applicationsQuery.data ?? EMPTY;
+  const followups = followupsQuery.data ?? EMPTY;
+  const team = teamQuery.data ?? EMPTY;
 
   const isLoading = candidatesQuery.isLoading || applicationsQuery.isLoading || teamQuery.isLoading;
 

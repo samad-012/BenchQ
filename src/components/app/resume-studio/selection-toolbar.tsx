@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { Bold, Italic, LoaderCircle, Sparkles, Underline } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { RewriteAction } from "@/lib/schemas/resume-document";
-import { agentsApi } from "@/lib/api/agents";
+import { useRewrite } from "@/lib/hooks/use-agents";
 import { cn } from "@/lib/cn";
 import { POPOVER_TRANSITION } from "@/lib/motion";
 import { useStudio } from "./studio-store";
@@ -38,6 +38,7 @@ export function SelectionToolbar({ scopeRef }: { scopeRef: RefObject<HTMLElement
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [busy, setBusy] = useState<RewriteAction | null>(null);
   const [formats, setFormats] = useState({ bold: false, italic: false, underline: false });
+  const rewriteMutation = useRewrite();
   const range = useRef<Range | null>(null);
   const field = useRef<HTMLElement | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -119,7 +120,7 @@ export function SelectionToolbar({ scopeRef }: { scopeRef: RefObject<HTMLElement
     setMenuOpen(false);
     if ("highlights" in CSS) CSS.highlights.set(HIGHLIGHT, new Highlight(r));
     try {
-      const result = await agentsApi.rewrite({ text: r.toString(), action });
+      const result = await rewriteMutation.mutateAsync({ text: r.toString(), action });
       if (restoreSelection()) document.execCommand("insertText", false, result.text);
       const claimId = target.dataset.claimId;
       if (claimId) {

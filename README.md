@@ -11,9 +11,10 @@ Use `pnpm typecheck`, `pnpm lint`, `pnpm test`, and `pnpm build` to verify.
 
 Context pack for building the **BenchQ** frontend with Claude Code.
 
-**Scope: design and UI only.** No backend, no database, no auth server, no LLM calls. Every piece
-of data the UI renders comes from a typed mock layer, behind an adapter boundary designed so the
-real backend swaps in later without touching a single screen.
+**Status: the UI is built and is being connected to the JobNavigator backend (FastAPI), one module
+at a time.** Each module runs on mock data (`src/mocks/`) until its adapter in `src/lib/api/`
+switches it to the backend. **Integrating a module? Start at
+[`docs/integration/README.md`](docs/integration/README.md).**
 
 ---
 
@@ -30,6 +31,8 @@ real backend swaps in later without touching a single screen.
 | `docs/04-SCREENS.md` | Every route: layout, states, permissions, keyboard map | Building any screen |
 | `docs/05-COMPONENTS.md` | Component inventory with props and variants | Building any component |
 | `docs/06-IMPLEMENTATION-PLAN.md` | Nine phases with exit criteria | Starting work, closing a phase |
+| `docs/integration/` | Backend integration: data flow, per-module plans, open product decisions | Connecting any module to the backend |
+| `docs/archive/` | Backend endpoint reference (`BACKEND_API_FEATURES.md`) and the old JSON-migration notes | Looking up a backend endpoint |
 
 ---
 
@@ -67,8 +70,9 @@ benchq-frontend/
 
 ## The three ideas everything else follows from
 
-**One architectural rule.** Components talk to typed adapters in `src/lib/api/`, never to a network
-directly. Today those adapters read fixtures; later they call a real API. Nothing else changes.
+**One architectural rule.** Components talk to hooks, hooks talk to typed adapters in
+`src/lib/api/`, and only adapters decide between mock data and the real backend. Backend responses
+are mapped to the frontend types in `src/lib/api/dto/`, so screens never change.
 
 **Verified, unverified, contradicted.** `VERIFIED` is evidence-backed and shippable. `UNVERIFIED` is drafted and needs
 review. `CONTRADICTED` conflicts with the evidence and never ships. A resume with any unverified claim cannot be

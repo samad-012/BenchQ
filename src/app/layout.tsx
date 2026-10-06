@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Agentation } from "agentation";
 import { Providers } from "./providers";
 import "@fontsource-variable/host-grotesk";
 import "@fontsource-variable/jetbrains-mono";
@@ -18,9 +17,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <Providers>{children}</Providers>
-        {/* process.env.NODE_ENV === "development" && (
-          <Agentation endpoint={process.env.NEXT_PUBLIC_AGENTATION_ENDPOINT} />
-        ) */}
       </body>
     </html>
   );

@@ -81,7 +81,6 @@ const STATIC_COMMANDS: Command[] = [
 export function useCommandPalette() {
   const open = useUiStore((s) => s.openCommandPalette);
   const close = useUiStore((s) => s.closeCommandPalette);
-  const reduceMotion = useReducedMotion() ?? false;
   return { open, close };
 }
 
@@ -111,26 +110,23 @@ export function CommandPalette() {
     const dynamicCommands: Command[] = [];
     
     (candidatesQuery.data ?? []).forEach(c => {
-      // Candidate might not have title, use something else or omit
-      const titleStr = (c as any).title ?? (c as any).currentTitle ?? "";
       dynamicCommands.push({
         id: `candidate-${c.id}`,
         group: "Candidates",
         label: c.fullName,
         icon: UserCircle,
-        keywords: titleStr,
+        keywords: c.primaryRole ?? "",
         run: (r) => r.push(`/candidates/${c.id}`)
       });
     });
 
     (jobsQuery.data ?? []).forEach(j => {
-      const compName = (j as any).companyName ?? (j as any).company?.name ?? "";
       dynamicCommands.push({
         id: `job-${j.id}`,
         group: "Jobs",
         label: j.title,
         icon: Building2,
-        keywords: compName,
+        keywords: j.company.name,
         run: (r) => r.push(`/jobs/${j.id}`)
       });
     });

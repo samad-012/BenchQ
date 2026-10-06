@@ -10,14 +10,16 @@ import { PageHeader } from "@/components/app/page-header";
 import { SkeletonCard } from "@/components/app/skeleton-card";
 import { FloorContent } from "./manager-dashboard";
 
+const EMPTY: never[] = [];
+
 export function OwnerDashboard() {
   const applicationsQuery = useApplications();
   const candidatesQuery = useCandidates();
   const teamQuery = useTeam();
 
-  const applications = applicationsQuery.data ?? [];
-  const candidates = candidatesQuery.data ?? [];
-  const team = teamQuery.data ?? [];
+  const applications = applicationsQuery.data ?? EMPTY;
+  const candidates = candidatesQuery.data ?? EMPTY;
+  const team = teamQuery.data ?? EMPTY;
   const isLoading = applicationsQuery.isLoading || candidatesQuery.isLoading;
 
   const placements = useMemo(

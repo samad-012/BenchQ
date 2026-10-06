@@ -1,10 +1,11 @@
-import { localData } from "@/lib/local-data/store";
 import type { Resume } from "@/lib/schemas/resume";
 
+const mock = () => import("@/mocks/resumes").then((m) => m.resumesMock);
+
 export const resumesApi = {
-  list: (): Promise<Resume[]> => localData.resumes.list(),
+  list: async (): Promise<Resume[]> => (await mock()).list(),
 
-  byCandidate: (candidateId: string): Promise<Resume[]> => localData.resumes.byCandidate(candidateId),
+  byCandidate: async (candidateId: string): Promise<Resume[]> => (await mock()).byCandidate(candidateId),
 
-  byId: (id: string): Promise<Resume> => localData.resumes.byId(id),
+  byId: async (id: string): Promise<Resume> => (await mock()).byId(id),
 };

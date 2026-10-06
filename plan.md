@@ -56,7 +56,9 @@ No backend — idea validation only. Depth of *feel* over depth of engineering.
   - `AgentRunPanel` — multi-step streaming progress (Reading → Extracting → Matching → Drafting)
   - `TypewriterText` — streamed token effect for generated copy
   - `UnverifiedToVerified` — the signature claim transition (already partly in ClaimChip)
-  - simulated agent handlers in `mocks/handlers/agents.ts` (2–5s delay, 5% fallback-to-manual)
+  - simulated agent handlers in `src/lib/local-data/agents.ts` + `delay.ts` (2–5s delay,
+    5% fallback-to-manual) — moved here from the original MSW `mocks/handlers/agents.ts` when the
+    MSW backend was replaced with local JSON data
 
 ### Stage 2 — The two lenses (equal polish)
 **Owner/manager transparency**

@@ -1,15 +1,18 @@
-import { localData } from "@/lib/local-data/store";
 import type { Application, FollowUpTask } from "@/lib/schemas/application";
 import type { UpdateApplicationStatus } from "@/lib/schemas/inbox";
 
+const mock = () => import("@/mocks/applications");
+
 export const applicationsApi = {
-  list: (params?: { candidateId?: string }): Promise<Application[]> => localData.applications.list(params),
+  list: async (params?: { candidateId?: string }): Promise<Application[]> =>
+    (await mock()).applicationsMock.list(params),
 
-  byId: (id: string): Promise<Application> => localData.applications.byId(id),
+  byId: async (id: string): Promise<Application> => (await mock()).applicationsMock.byId(id),
 
-  updateStatus: (id: string, body: UpdateApplicationStatus): Promise<Application> => localData.applications.updateStatus(id, body),
+  updateStatus: async (id: string, body: UpdateApplicationStatus): Promise<Application> =>
+    (await mock()).applicationsMock.updateStatus(id, body),
 };
 
 export const followupsApi = {
-  list: (params?: { userId?: string }): Promise<FollowUpTask[]> => localData.followups.list(params),
+  list: async (params?: { userId?: string }): Promise<FollowUpTask[]> => (await mock()).followupsMock.list(params),
 };

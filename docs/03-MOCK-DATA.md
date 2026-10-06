@@ -1,5 +1,11 @@
 # 03 — Mock Data Layer
 
+> **Partly superseded (October 2026).** The MSW sections (§2 and the `handlers/` / `fixtures/`
+> paths) are historical. Mocks now live in `src/mocks/<module>.ts` with JSON in
+> `src/mocks/data/`, and each module's mock is deleted as it goes live on the backend — see
+> [`docs/integration/README.md`](./integration/README.md). The fixture volumes, derived-counter
+> rules and AI-simulation timings below still describe the mock data.
+
 **Project:** BenchQ · frontend only
 **Version:** 1.0 · September 2026
 

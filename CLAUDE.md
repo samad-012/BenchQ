@@ -10,19 +10,24 @@ Instructions for Claude Code working in this repository. Read this before any ta
 
 ## Scope — read this first
 
-**This repository is the frontend only.** There is no backend, no database, no auth server, no AI
-calls. Every piece of data the UI renders comes from the mock layer described in
-`docs/03-MOCK-DATA.md`.
+**The frontend is built; the work now is connecting it to the backend, one module at a time.**
+The backend is JobNavigator (FastAPI, Python) and lives in `backend/` once
+`docs/integration/00-foundation.md` is done. Each module is served either by its mock
+(`src/mocks/`) or by the backend, decided only in its adapter (`src/lib/api/<module>.ts`).
 
-Your job is to build a complete, realistic, fully interactive UI that a person can click through
-end to end as if it were live. When the backend arrives, swapping it in must be a change to one
-adapter file — not a rewrite of any screen.
+**Integration tasks start at `docs/integration/README.md`** — the data flow, the per-module
+workflow, the module board and the definition of done. Each module has its own file there.
 
-**Do not build:** Prisma schemas · database migrations · tRPC servers · auth providers · API route
-handlers that touch a real service · OpenRouter or any LLM calls · background workers · Stripe.
+Swapping a module to the backend must never require rewriting a screen: map the backend's
+response to the frontend types in a DTO mapper (`src/lib/api/dto/`). If a screen must change,
+that's a product decision — stop and ask.
 
-**Do build:** every screen, every component, every state, every interaction, every empty and error
-state, with mock data behind a typed interface.
+**Do not build in the frontend:** database code · Next.js API route handlers (the backend is
+FastAPI, reached through the `next.config.ts` proxy) · LLM calls (the backend owns AI) ·
+background workers · Stripe.
+
+**Backend changes** belong to the backend owner. Make one only when your module file says so, or
+after asking.
 
 ---
 
@@ -47,8 +52,10 @@ cover a case, it's the file that decides.
 
 ## Before you start any task
 
-1. Read `docs/06-IMPLEMENTATION-PLAN.md` and find which **phase** the task belongs to.
+1. **Backend integration task?** Read `docs/integration/README.md`, then your module's file.
+   Otherwise read `docs/06-IMPLEMENTATION-PLAN.md` and find which **phase** the task belongs to.
 2. Read the doc that owns the area:
+   - Connecting a module to the backend → `docs/integration/`
    - Why, who for, vocabulary, judgment calls → `product.md`
    - Stack, folders, routing → `docs/01-FRONTEND-ARCHITECTURE.md`
    - Types and shapes → `docs/02-DATA-CONTRACTS.md`
@@ -104,7 +111,9 @@ component that only handles the happy path is incomplete.
 `src/lib/schemas/` are the source of truth; infer types from them, don't write parallel interfaces.
 
 **React** — Server Components by default; `'use client'` only for state, effects or browser APIs.
-Data through TanStack Query against the mock adapters — never raw `fetch` in a component.
+Data through TanStack Query hooks (`src/lib/hooks/`) against the adapters in `src/lib/api/` —
+never call an adapter, `fetch`, a mock or a JSON fixture from a component. The only `fetch` in the
+app is in `src/lib/api/http.ts`.
 
 **Naming** — files `kebab-case.tsx`, components `PascalCase`, hooks `use-thing.ts`. Booleans read
 as assertions: `isActive`, `hasEvidence`, `canExport`.
@@ -122,14 +131,14 @@ Respect `prefers-reduced-motion`.
 
 ## Commands
 
+Node 22+ (`.nvmrc`); Vitest won't start on older Node.
+
 ```bash
-pnpm dev          # dev server
+pnpm dev          # dev server (reads .env.local — see docs/integration/README.md)
 pnpm build        # production build
 pnpm typecheck    # tsc --noEmit
 pnpm lint         # eslint
 pnpm test         # vitest
-pnpm test:e2e     # playwright
-pnpm storybook    # component workshop
 ```
 
 ---
@@ -150,11 +159,14 @@ pnpm storybook    # component workshop
 
 ## Things you must not do
 
-- Do not add a backend, a database, or any real network call.
-- Do not call an LLM. AI-generated content is **simulated** from fixtures with a realistic delay —
-  see `docs/03-MOCK-DATA.md §5`.
+- Do not make a network call outside `src/lib/api/http.ts`, or let a backend (snake_case) shape
+  escape `src/lib/api/dto/`.
+- Do not edit `src/lib/schemas/` to fit the backend — map to it, or stop and ask.
+- Do not call an LLM from the frontend. AI comes from the backend; mocked modules simulate it.
+- Do not hardcode AI-generated text inside a component.
 - Do not hardcode a colour, a font size, or a spacing value.
-- Do not let an agent write an `VERIFIED` claim in mock data without an attached `evidenceId`.
+- Do not produce a `VERIFIED` claim — in mock data or in a backend mapper — without an attached
+  `evidenceId`.
 - Do not bypass the export gate on resumes with unverified claims.
 - Do not store a derived counter as a literal.
 - Do not add a dependency without checking it against `docs/01-FRONTEND-ARCHITECTURE.md §3`.
@@ -165,7 +177,8 @@ pnpm storybook    # component workshop
 ## When you're unsure
 
 Stop and ask. Especially for: changes to the claim-state model, changes to the data contracts,
-anything that would require a real backend, or a contradiction between two docs.
+anything listed in `docs/integration/06-open-decisions.md`, a change to the backend, or a
+contradiction between two docs.
 
 A stopped task with a clear question beats a confident wrong implementation.
 
@@ -175,5 +188,7 @@ A stopped task with a clear question beats a confident wrong implementation.
 
 > **Update this line as you progress.**
 
-**Demo Stage 1 — Shared building blocks.** Derive layer, shared primitives, DataTable, and AI-theatre kit.
-Current sequence and completion state live in `plan.md`.
+**Backend integration.** All UI stages (1–4 in `plan.md`) are built and render on mocks;
+typecheck and lint are clean. The frontend is prepared for integration: HTTP client, backend
+proxy, per-module live switch and per-module mocks are in place. Module status lives on the board
+in `docs/integration/README.md` — the next step is Module 00 (bring `backend/` in, connect, auth).

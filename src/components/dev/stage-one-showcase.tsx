@@ -6,7 +6,7 @@ import { Play, Square } from "lucide-react";
 import { AgentRunPanel, UnverifiedToVerified, TypewriterText } from "@/components/app/ai";
 import { DataTable } from "@/components/app/data-table";
 import { Button } from "@/components/ui/button";
-import { agentsApi } from "@/lib/api/agents";
+import { useTailorResume } from "@/lib/hooks/use-agents";
 import type { AgentRunStatus } from "@/components/app/ai";
 
 interface DemoRow {
@@ -57,6 +57,7 @@ export function StageOneShowcase() {
   const [elapsedMs, setElapsedMs] = React.useState(0);
   const [draft, setDraft] = React.useState("");
   const [claimState, setClaimState] = React.useState<"UNVERIFIED" | "VERIFIED">("UNVERIFIED");
+  const tailorMutation = useTailorResume();
   const abortRef = React.useRef<AbortController | null>(null);
   const timersRef = React.useRef<number[]>([]);
 
@@ -88,10 +89,10 @@ export function StageOneShowcase() {
     );
 
     try {
-      const result = await agentsApi.tailorResume(
-        { resumeVersionId: "resume-version-demo", jobId: "job-demo" },
-        controller.signal,
-      );
+      const result = await tailorMutation.mutateAsync({
+        input: { resumeVersionId: "resume-version-demo", jobId: "job-demo" },
+        signal: controller.signal,
+      });
       clearTimers();
       setStatus("complete");
       setActiveStage(AGENT_STAGES.length);
