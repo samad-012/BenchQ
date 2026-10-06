@@ -46,6 +46,8 @@ __pycache__/
 *.py[cod]
 .venv/
 .pytest_cache/
+/backups/
+backend/.linkedin_api/
 
 # Ruflo/claude-flow generated project files (local only, never committed)
 .agents/

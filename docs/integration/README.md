@@ -160,7 +160,7 @@ live; only step 5 does.
 
 | # | Module | Difficulty | Depends on | Can start | Owner | Status |
 |---|---|---|---|---|---|---|
-| 00 | [Foundation: monorepo, connection, auth](./00-foundation.md) | Easy | — | Now | | Not started |
+| 00 | [Foundation: monorepo, connection, auth](./00-foundation.md) | Easy | — | Now | | In progress — Part A done (backend in repo, runs, proxy verified); B/C open |
 | 01 | [Ledger (activity log)](./01-ledger.md) | Easy | 00 | After 00 | | Not started |
 | 02 | [Jobs (+ companies)](./02-jobs.md) | Medium | 00 | After 00 | | Not started |
 | 03 | [Applications](./03-applications.md) | Medium–hard | 02 live | After 00 (live after 02) | | Not started |

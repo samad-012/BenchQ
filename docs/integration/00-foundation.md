@@ -15,6 +15,18 @@ it through the Next.js proxy, and a sign-in that gets the backend's session cook
 - `src/lib/api/dto/shared.ts` — `toIso` / `toIsoOrNull` timestamp normalisation, with tests.
 - `next.config.ts` — proxies `/api/*` and `/health` to `BACKEND_URL` when it's set.
 - ESLint ignores `backend/**`; `.gitignore` covers Python artifacts.
+- **Part A (below) is done** on branch `integration/backend-foundation`: `backend/` copied from
+  JobNavigator `cdc7273`, compose trimmed to `db` + `backend`, `.dockerignore` added, stack built
+  and verified (health, proxy, backend tests). Parts B and C remain.
+
+### Known setup pitfalls
+
+- **Apple-silicon Macs:** if `node -p process.arch` prints `x64`, your Node is an Intel build under
+  Rosetta. Next.js warns about it, and Vitest fails with `Cannot find module
+  '@rollup/rollup-darwin-arm64'` the moment you switch to a native Node. Install an arm64 Node 22,
+  then `rm -rf node_modules && pnpm install`.
+- **Backend image build** fetches the Antigravity CLI from Google during `docker compose build`.
+  That download occasionally fails (exit code 2); rerun the build, since earlier layers are cached.
 
 ---
 
@@ -51,8 +63,11 @@ The folder must be named `backend/`: the code imports itself as `backend.*`
    (`git -C <jobnavigator> rev-parse HEAD`), so upstream fixes can be pulled in later.
 3. Edit `docker-compose.yml`:
    - delete the `frontend` and `caddy` services and the `caddy_data` / `caddy_config` volumes;
-   - on `backend`, change `env_file: .env` → `env_file: backend/.env`. This keeps backend secrets
-     out of the root `.env*` files that Next.js auto-loads;
+   - on `backend`, change `env_file: .env` → `backend/.env` with `required: false`. This keeps
+     backend secrets out of the root `.env*` files that Next.js auto-loads, and the stack still
+     starts without the file (open first-run mode);
+   - rename the backend `image:` to a local tag (`benchq-backend:local`), so Compose never pulls
+     upstream's prebuilt image in place of this copy;
    - keep `db`, `backend`, `pgdata`, and the auth volumes the backend service mounts.
 4. `cp backend/.env.example backend/.env` and make sure `backend/.env` is git-ignored (the root
    `.gitignore` rule `.env*` already covers it).
@@ -63,6 +78,10 @@ The folder must be named `backend/`: the code imports itself as `backend.*`
 ```bash
 docker compose up -d --build db backend      # first build takes a few minutes (Playwright)
 curl http://localhost:8000/health             # {"status":"ok","service":"JobNavigator",...}
+
+# backend tests (in-memory SQLite, no Postgres needed)
+docker compose exec -T -e DATABASE_URL=sqlite:///:memory: backend \
+  python -m pytest backend/tests -q -o asyncio_mode=auto -m "not live" -p no:cacheprovider
 ```
 
 Python alternative, if you'd rather not rebuild the image while editing the backend:
