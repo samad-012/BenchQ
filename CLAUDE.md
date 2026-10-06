@@ -56,6 +56,7 @@ cover a case, it's the file that decides.
    Otherwise read `docs/06-IMPLEMENTATION-PLAN.md` and find which **phase** the task belongs to.
 2. Read the doc that owns the area:
    - Connecting a module to the backend → `docs/integration/`
+   - Routes, navigation, role access, permissions → `docs/07-ROUTES-AND-RBAC.md`
    - Why, who for, vocabulary, judgment calls → `product.md`
    - Stack, folders, routing → `docs/01-FRONTEND-ARCHITECTURE.md`
    - Types and shapes → `docs/02-DATA-CONTRACTS.md`
