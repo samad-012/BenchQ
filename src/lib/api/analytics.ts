@@ -1,6 +1,7 @@
-import { localData } from "@/lib/local-data/store";
 import type { LedgerEntry } from "@/lib/schemas/analytics";
 
+const mock = () => import("@/mocks/ledger").then((m) => m.ledgerMock);
+
 export const ledgerApi = {
-  list: (params?: { limit?: number; offset?: number }): Promise<LedgerEntry[]> => localData.ledger.list(params),
+  list: async (params?: { limit?: number; offset?: number }): Promise<LedgerEntry[]> => (await mock()).list(params),
 };

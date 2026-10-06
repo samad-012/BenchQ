@@ -8,7 +8,7 @@ import { useCandidates } from "@/lib/hooks/use-candidates";
 import { useJobs } from "@/lib/hooks/use-jobs";
 import { useApplications } from "@/lib/hooks/use-applications";
 import { useSession } from "@/lib/stores/session-store";
-import { rankJobsForCandidate, deriveMatchScore } from "@/lib/derive";
+import { rankJobsForCandidate } from "@/lib/derive";
 import { MatchScore } from "@/components/app/match-score";
 import { Tag } from "@/components/ui/tag";
 import { Button } from "@/components/ui/button";

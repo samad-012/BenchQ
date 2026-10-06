@@ -12,7 +12,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    "public/mockServiceWorker.js",
+    // Not frontend source: the Python backend and local agent-tooling folders.
+    "backend/**",
+    ".claude/**",
+    ".claude-flow/**",
+    ".agents/**",
+    ".swarm/**",
   ]),
 ]);
 

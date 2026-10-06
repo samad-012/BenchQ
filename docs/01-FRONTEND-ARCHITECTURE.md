@@ -1,5 +1,11 @@
 # 01 — Frontend Architecture
 
+> **Data layer superseded (October 2026).** MSW is gone. Adapters in `src/lib/api/` now choose
+> between `src/mocks/` (lazy-loaded JSON) and the real FastAPI backend via `http.ts`, per module.
+> The current data flow, env vars and integration rules are in
+> [`docs/integration/README.md`](./integration/README.md). Everything else in this file still
+> applies.
+
 **Project:** BenchQ · frontend only
 **Version:** 1.0 · September 2026
 

@@ -1,8 +1,9 @@
-import { localData } from "@/lib/local-data/store";
 import type { Company } from "@/lib/schemas/company";
 
-export const companiesApi = {
-  list: (): Promise<Company[]> => localData.companies.list(),
+const mock = () => import("@/mocks/companies").then((m) => m.companiesMock);
 
-  byId: (id: string): Promise<Company> => localData.companies.byId(id),
+export const companiesApi = {
+  list: async (): Promise<Company[]> => (await mock()).list(),
+
+  byId: async (id: string): Promise<Company> => (await mock()).byId(id),
 };

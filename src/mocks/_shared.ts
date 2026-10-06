@@ -1,0 +1,33 @@
+import { ApiError } from "@/lib/api/client";
+
+const DEFAULT_DELAY_MS = 60;
+
+function configuredDelay(): number {
+  const value = Number(process.env.NEXT_PUBLIC_MOCK_DELAY_MS ?? DEFAULT_DELAY_MS);
+  return Number.isFinite(value) && value >= 0 ? value : DEFAULT_DELAY_MS;
+}
+
+export async function wait(ms = configuredDelay(), signal?: AbortSignal): Promise<void> {
+  if (signal?.aborted) {
+    throw new DOMException("The mock request was cancelled.", "AbortError");
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(resolve, ms);
+    const cancel = () => {
+      clearTimeout(timer);
+      reject(new DOMException("The mock request was cancelled.", "AbortError"));
+    };
+    signal?.addEventListener("abort", cancel, { once: true });
+  });
+}
+
+/** Resolves like a network call: after a delay, with a copy the caller can't mutate. */
+export async function mockResult<T>(value: T, signal?: AbortSignal): Promise<T> {
+  await wait(undefined, signal);
+  return structuredClone(value);
+}
+
+export function notFound(resource: string, id: string): never {
+  throw new ApiError(`${resource} ${id} not found.`, "NOT_FOUND", 404);
+}

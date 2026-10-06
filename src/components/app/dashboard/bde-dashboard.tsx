@@ -20,6 +20,8 @@ import { SkeletonCard } from "@/components/app/skeleton-card";
 import { PageHeader } from "@/components/app/page-header";
 import { Users } from "lucide-react";
 
+const EMPTY: never[] = [];
+
 const NIGHTLY_TARGET = 40;
 
 export function BdeDashboard() {
@@ -29,10 +31,10 @@ export function BdeDashboard() {
   const followupsQuery = useFollowups(user.id);
   const jobsQuery = useJobs({ limit: 300 });
 
-  const candidates = candidatesQuery.data ?? [];
-  const applications = applicationsQuery.data ?? [];
-  const followups = followupsQuery.data ?? [];
-  const jobs = jobsQuery.data ?? [];
+  const candidates = candidatesQuery.data ?? EMPTY;
+  const applications = applicationsQuery.data ?? EMPTY;
+  const followups = followupsQuery.data ?? EMPTY;
+  const jobs = jobsQuery.data ?? EMPTY;
 
   const myCandidates = useMemo(
     () => candidates.filter((c) => c.assignedUserIds.includes(user.id)),

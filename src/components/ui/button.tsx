@@ -48,8 +48,11 @@ const buttonVariants = cva(
   },
 );
 
+// motion.button redefines these handlers with incompatible signatures.
+type MotionConflictingHandlers = "onDrag" | "onDragStart" | "onDragEnd" | "onAnimationStart";
+
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, MotionConflictingHandlers>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
@@ -70,7 +73,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         type="button"
         whileTap={reduceMotion ? undefined : { scale: 0.97 }}
         transition={SPRING_PRESS}
-        {...(props as any)}
+        {...props}
       />
     );
   },

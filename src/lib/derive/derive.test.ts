@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import candidatesSeed from "@/data/candidates.json";
-import applicationsSeed from "@/data/applications.json";
-import resumesSeed from "@/data/resumes.json";
+import candidatesSeed from "@/mocks/data/candidates.json";
+import applicationsSeed from "@/mocks/data/applications.json";
+import resumesSeed from "@/mocks/data/resumes.json";
 import { arrayOf } from "@/lib/api/client";
 import { CandidateSchema } from "@/lib/schemas/candidate";
 import { ApplicationSchema } from "@/lib/schemas/application";

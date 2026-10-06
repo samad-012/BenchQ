@@ -1,8 +1,9 @@
-import { localData } from "@/lib/local-data/store";
 import type { Job } from "@/lib/schemas/job";
 
-export const jobsApi = {
-  list: (params?: { limit?: number; offset?: number }): Promise<Job[]> => localData.jobs.list(params),
+const mock = () => import("@/mocks/jobs").then((m) => m.jobsMock);
 
-  byId: (id: string): Promise<Job> => localData.jobs.byId(id),
+export const jobsApi = {
+  list: async (params?: { limit?: number; offset?: number }): Promise<Job[]> => (await mock()).list(params),
+
+  byId: async (id: string): Promise<Job> => (await mock()).byId(id),
 };

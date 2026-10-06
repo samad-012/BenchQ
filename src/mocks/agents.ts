@@ -1,5 +1,4 @@
-import { ApiError } from "@/lib/api/client";
-import { localResult, wait } from "./delay";
+import { mockResult, wait } from "./_shared";
 import { AgentDraftSchema, TailorResumeInputSchema, type AgentDraft, type TailorResumeInput } from "@/lib/schemas/agent";
 import { RewriteInputSchema, type RewriteInput, type RewriteResult, RewriteResultSchema } from "@/lib/schemas/resume-document";
 import { ResumeClaimSchema, type ResumeClaim } from "@/lib/schemas/resume";
@@ -106,17 +105,17 @@ function draftClaims(resumeVersionId: string): ResumeClaim[] {
   ];
 }
 
-export const localAgents = {
+export const agentsMock = {
   rewrite: async (rawInput: RewriteInput, signal?: AbortSignal): Promise<RewriteResult> => {
     const input = RewriteInputSchema.parse(rawInput);
     await wait(900, signal);
-    return localResult(rewriteText(input), signal);
+    return mockResult(rewriteText(input), signal);
   },
 
   tailorResume: async (rawInput: TailorResumeInput, signal?: AbortSignal): Promise<AgentDraft> => {
     const input = TailorResumeInputSchema.parse(rawInput);
     await wait(2_000, signal);
-    return localResult(AgentDraftSchema.parse({
+    return mockResult(AgentDraftSchema.parse({
       runId: `run_${input.resumeVersionId}_${input.jobId}`,
       resumeVersionId: input.resumeVersionId,
       jobId: input.jobId,
@@ -126,7 +125,3 @@ export const localAgents = {
     }), signal);
   },
 };
-
-export function localAgentError(message: string): ApiError {
-  return new ApiError(message, "AGENT_UNAVAILABLE", 503);
-}
